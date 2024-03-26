@@ -1,5 +1,5 @@
 from urls import process_urls
-from setting import VIVO_SERVER_ADDRESS
+from setting import SERVER_ADDRESS
 import socket
 
 
@@ -7,12 +7,12 @@ class Server:
     clients = []
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(VIVO_SERVER_ADDRESS)
+        self.server_socket.bind(SERVER_ADDRESS)
 
     def run(self):
         # 开始监听连接请求
         self.server_socket.listen()
-        print(f'Server is running at http://{VIVO_SERVER_ADDRESS[0]}:{VIVO_SERVER_ADDRESS[1]}...')
+        print(f'Server is running at http://{SERVER_ADDRESS[0]}:{SERVER_ADDRESS[1]}...')
         while True:
             # 等待客户端连接请求
             client_socket, client_address = self.server_socket.accept()
