@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="icon" href="../static/img/favicon.ico">
+    <script src="../static/js/vue.js"></script>
+    <link rel="stylesheet" href="../static/css/index2.css" type="text/css">
+    <link rel="stylesheet" href="../static/css/index.css" type="text/css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/c/font_3638580_x2ayz4uqkj.css">
+    <link rel="stylesheet" href="../static/js/jquery-emoji/lib/css/jquery.mCustomScrollbar.min.css">
+    <link rel="stylesheet" href="../static/js/jquery-emoji/dist/css/jquery.emoji.css">
+    <style>
+        body {
+            background-image: url('../static/img/cool-background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+    </style>
+    <script src="../static/js/jquery.js"></script>
+</head>
+
+<body>
+    <div class="all m1">
+        <p class="orange">Chat-Online</p>
+        <div v-show="!is_login" class="panel login">
+            <div class="btn-container">
+                <input type="text" placeholder="请输入你的昵称" v-model="nickname">
+                <div class="btn" @click="loginEvent">登录</div>
+            </div>
+        </div>
+        <div v-show="is_login" class="container">
+            <div id="login-container" style="display: none;">
+                <h1 class="title">用户登录</h1>
+
+                <div class="userinfo">
+                    <div class="user">
+                        <span>用户名</span>
+                        <input type="text" id="username">
+                    </div>
+
+                    <div class="avatar">
+                        <span>选择头像</span>
+                        <ul class="avatars">
+                            <li class=""><img src="../static/img/avatar01.webp" alt=""></li>
+                            <li class="active"><img src="../static/img/avatar02.webp" alt=""></li>
+                            <li><img src="../static/img/avatar03.webp" alt=""></li>
+                            <li><img src="../static/img/avatar04.webp" alt=""></li>
+                            <li><img src="../static/img/avatar05.webp" alt=""></li>
+                            <li><img src="../static/img/avatar06.webp" alt=""></li>
+                            <li><img src="../static/img/avatar07.webp" alt=""></li>
+                            <li><img src="../static/img/avatar08.webp" alt=""></li>
+                            <li><img src="../static/img/avatar09.webp" alt=""></li>
+                            <li><img src="../static/img/avatar10.webp" alt=""></li>
+                        </ul>
+                    </div>
+
+                    <button class="login-btn">登录</button>
+                </div>
+            </div>
+            <div id="chat-container">
+                <div class="userinfo">
+                    <div class="self">
+                        <img class="avatar-url" :src="'../static/img/avatar'+img+'.webp'" alt="">
+                        <span class="username">
+                            {{nickname}}
+                            <button @click="logout" id="logout"
+                                style="cursor: pointer;padding-left: 30px;background-color: transparent;border:0;color: #fff;"
+                                onmouseover="this.style.color='red';" onmouseout="this.style.color='#fff';">退出</button>
+                        </span>
+                    </div>
+                    <hr>
+                    <div class="userlist-title">网站用户列表</div>
+                    <div class="other-users">
+                        <div class="user-card" @click="shift_chat('room')">
+                            <!-- <img :src="'../static/img/avatar' + user.img + '.webp'" alt=""> -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"
+                                style="padding-left: 12px;padding-right: 20px;">
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M10 16h4M2 8l9.732-4.866a.6.6 0 0 1 .536 0L22 8m-2 3v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8">
+                                </path>
+                            </svg>
+                            <span>大厅</span>
+                        </div>
+                        <div v-for="user in room.user_list" class="user-card" @click="shift_chat(user.name)">
+                            <img :src="'../static/img/avatar' + user.img + '.webp'" alt="">
+                            <span>{{user.name}} {{ nickname === user.name ? '( 我 )' : '' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="comments">
+                    <div v-if="chat_obj=='room'" class="title">大厅({{room_nums}})</div>
+                    <div v-else class="title">{{chat_obj}}</div>
+                    <hr>
+                    <div class="main-chat">
+                        <div v-for="piece in room.main_chat"
+                            :class="piece.chat_type === 'system_info'?'system-info':piece.name === nickname?'self-comment': 'other-comment' ">
+                            <template v-if="piece.chat_type === 'system_info'">
+                                {{piece.message}}
+                            </template>
+                            <div v-else-if="!(piece.name === nickname)" class="other-comment">
+                                <div class="box-info">
+                                    <span class="username">{{piece.name}}</span>
+                                    <span class="info">{{piece.message}}</span>
+                                </div>
+                                <img :src="'../static/img/avatar'+piece.img+'.webp'" alt="">
+                            </div>
+                            <div v-else class="self-comment">
+                                <span class="info">{{piece.message}}</span>
+                                <img :src="'../static/img/avatar'+img+'.webp'" alt="">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="operations">
+                        <div class="tools">
+                            <label for="">
+                                <i class="iconfont icon-emoji-happy"></i>
+                            </label>
+
+                            <label for="">
+                                <i class="iconfont icon-caijian"></i>
+                            </label>
+
+                            <label for="file">
+                                <i class="iconfont icon-wj-wjj"></i>
+                            </label>
+                            <input type="file" name="file" id="file" class="d-none">
+                        </div>
+                        <div class="chat-input">
+                            <div contenteditable id="content"></div>
+                        </div>
+                        <div class="btn">
+                            <button style="display: none;" id="lgot">退出</button>
+                            <button @click="freshMsg" style="display: none;">刷新</button>
+                            <button @click="sendMsg">发送</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timer
+        // 防抖函数，若
+        function mydebounce(f, t) {
+            return function () {
+                if (timer) clearTimeout(timer)
+                // 此处由于setTimeout属于window因此需要重置this
+                timer = setTimeout(f.bind(this), t)
+            }
+        }
+        const m1 = new Vue({
+            el: ' .m1', data: {
+                nickname: '',
+                img: '03',
+                is_login: false,
+                chat_obj: 'room',
+                room: {
+                    user_list: [],
+                    main_chat: []
+                }
+            }, computed: {
+                room_nums() {
+                    return this.room.user_list.length
+                }
+            }, methods: {
+                loginEvent() {
+                    if (this.nickname === '') {
+                        alert('昵称不能为空')
+                        return
+                    }
+                    $.ajax({
+                        url: '/login/client',
+                        type: 'GET',
+                        data: {
+                            nickname: this.nickname
+                        },
+                        datatype: 'JSON',
+                        success: (res) => {
+
+                            if (res.status) {
+                                this.is_login = true
+                                $('p').remove()
+                                this.room.user_list = res.user_list
+                                this.room.main_chat = res.room_chat
+                                this.img = res.img
+
+                                // let out_this = this
+                                // $('#lgot')[0].addEventListener('click', mydebounce(function () {
+                                //     out_this.logout()
+                                // }, 6000))
+                                // 登录成功后开始刷新数据
+                                setInterval(() => {
+                                    m1.freshMsg()
+                                    // $('#lgot').click()
+                                }, 2500)
+                            } else {
+                                alert('用户已经登录')
+                            }
+                        }
+                    })
+                },
+                freshMsg() {
+                    $.ajax({
+                        url: '/fresh/message',
+                        type: 'GET',
+                        data: {
+                            nickname: this.nickname,
+                            chat_obj: this.chat_obj,
+                        },
+                        datatype: 'JSON',
+                        success: (res) => {
+                            if (res.status) {
+                                // 如果聊天框有新信息则更新聊天框
+                                if (this.chat_obj == 'room' && JSON.stringify(this.room.main_chat) !== JSON.stringify(res.room_chat))
+                                    this.room.main_chat = res.room_chat
+                                else if (this.chat_obj != 'room' && JSON.stringify(this.room.main_chat) !== JSON.stringify(res.priv_chat))
+                                    this.room.main_chat = res.priv_chat
+                                // 如果用户列表有变化则更新用户列表
+                                if (JSON.stringify(this.room.user_list) !== JSON.stringify(res.user_list))
+                                    this.room.user_list = res.user_list
+                            } else {
+                                alert('发送失败')
+                            }
+                        }
+                    })
+                },
+                sendMsg() {
+                    $.ajax({
+                        url: '/sent/message',
+                        type: 'GET',
+                        data: {
+                            nickname: this.nickname,
+                            message: $('#content')[0].innerText,
+                            img: this.img,
+                            chat_obj: this.chat_obj,
+                        },
+                        datatype: 'JSON',
+                        success: (res) => {
+                            if (res.status) {
+                                if (this.chat_obj == 'room')
+                                    this.room.main_chat = res.room_chat
+                                else
+                                    this.room.main_chat = res.priv_chat
+                                $('#content')[0].innerText = ''
+                            } else {
+                                alert('发送失败')
+                            }
+                        }
+                    })
+                },
+                shift_chat(chat_obj) {
+                    this.chat_obj = chat_obj
+                    this.freshMsg()
+                },
+                logout() {
+                    $.ajax({
+                        url: '/logout',
+                        type: 'GET',
+                        data: {
+                            nickname: this.nickname,
+                            img: this.img,
+                        },
+                        datatype: 'JSON',
+                        success: (res) => {
+                            if (res.status) {
+                                this.is_login = false
+                                window.location.reload()
+                            } else {
+                                alert('退出失败')
+                            }
+                        }
+                    })
+                }
+            },
+        })
+
+    </script>
+    <script src="../static/js/jquery-emoji/lib/script/jquery.mousewheel-3.0.6.min.js"></script>
+    <script src="../static/js/jquery-emoji/lib/script/jquery.mCustomScrollbar.min.js"></script>
+    <script src="../static/js/jquery-emoji/src/js/jquery.emoji.js"></script>
+    <script src="../static/js/jquery-emoji/lib/script/jquery.mousewheel-3.0.6.min.js"></script>
+    <script src="../static/js/jquery-emoji/lib/script/jquery.mCustomScrollbar.min.js"></script>
+    <script src="../static/js/jquery-emoji/src/js/jquery.emoji.js"></script>
+</body>
+
+</html>
